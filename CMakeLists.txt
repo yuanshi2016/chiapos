@@ -62,6 +62,7 @@ include_directories(
   ${gulrak_SOURCE_DIR}/include/ghc
   ${CMAKE_CURRENT_SOURCE_DIR}/../lib/FiniteStateEntropy/lib
   ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/uint128_t
   ${CMAKE_CURRENT_SOURCE_DIR}/test
   )
 
