@@ -165,7 +165,11 @@ public:
         std::cout << "Final Directory is: " << final_dirname << std::endl;
         std::cout << "Using " << (int)num_threads << " threads of stripe size " << stripe_size
                   << std::endl;
-        std::cout << "Process ID is: " << ::getpid() << std::endl;
+#ifdef _WIN32
+		std::cout << "Process ID is: " << ::GetCurrentProcessId() << std::endl;
+#else
+		std::cout << "Process ID is: " << ::getpid() << std::endl;
+#endif
 
         // Cross platform way to concatenate paths, gulrak library.
         std::vector<fs::path> tmp_1_filenames = std::vector<fs::path>();
