@@ -2,6 +2,11 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.14 FATAL_ERROR)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+if (WIN32)
+message("WIN32")
+add_compile_options(-msse4.1 -maes -march=native -mavx -mavx2 -mavx512f -mavx512vl -fPIC -O3)
+endif()
+
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE "RELEASE")
 ENDIF()

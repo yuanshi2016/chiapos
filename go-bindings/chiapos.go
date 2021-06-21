@@ -11,8 +11,8 @@ package go_bindings
 
 /*
 #cgo CFLAGS: -I.
-#cgo CXXFLAGS: -I. -std=c++17
-#cgo linux LDFLAGS: -L${SRCDIR} -lchiapos -lfse -luint128 -lm -lstdc++ -lstdc++fs
+#cgo CXXFLAGS: -I. -I../uint128_t -std=c++17
+#cgo LDFLAGS: -L${SRCDIR} -lchiapos -lfse -luint128 -lm -lstdc++ -lstdc++fs
 #include <stdlib.h>
 #include "chiapos.h"
 */
