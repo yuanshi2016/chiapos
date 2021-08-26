@@ -21,7 +21,6 @@ import (
 	"runtime"
 	"unsafe"
 )
-
 const kIdLen = 32
 
 func CreatePlotDisk(tmp_dirname, tmp2_dirname, final_dirname, filename string,
