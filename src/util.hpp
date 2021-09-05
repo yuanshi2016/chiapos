@@ -30,7 +30,10 @@
 #include <string>
 #include <utility>
 #include <vector>
-
+using std::string;
+using std::vector;
+using std::endl;
+using std::cout;
 template <typename Int>
 constexpr inline Int cdiv(Int a, int b) { return (a + b - 1) / b; }
 
@@ -161,7 +164,15 @@ namespace Util {
         s << std::dec;
         return s.str();
     }
-
+inline std::vector<unsigned char> intToBytes(uint32_t paramInt, uint32_t numBytes)
+{
+    vector<unsigned char> arrayOfByte(numBytes, 0);
+    for (uint32_t i = 0; paramInt > 0; i++) {
+        arrayOfByte[numBytes - i - 1] = paramInt & 0xff;
+        paramInt >>= 8;
+    }
+    return arrayOfByte;
+}
     inline void IntToTwoBytes(uint8_t *result, const uint16_t input)
     {
         uint16_t r = bswap_16(input);

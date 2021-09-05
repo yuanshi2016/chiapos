@@ -28,6 +28,9 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <cstdio>
+#include <iomanip>
+#include <cstdlib>
 
 #include "../lib/include/picosha2.hpp"
 #include "calculate_bucket.hpp"
@@ -35,14 +38,15 @@
 #include "entry_sizes.hpp"
 #include "util.hpp"
 
+using namespace std;
 struct plot_header {
     uint8_t magic[19];
     uint8_t id[32];
     uint8_t k;
     uint8_t fmt_desc_len[2];
     uint8_t fmt_desc[50];
+    uint8_t local_sk_len[52];
 };
-
 
 // The DiskProver, given a correctly formatted plot file, can efficiently generate valid proofs
 // of space, for a given challenge.
@@ -60,14 +64,13 @@ public:
         if (!disk_file.is_open()) {
             throw std::invalid_argument("Invalid file " + filename);
         }
-        // 19 bytes  - "Proof of Space Plot" (utf-8)
-        // 32 bytes  - unique plot id
-        // 1 byte    - k
-        // 2 bytes   - format description length
-        // x bytes   - format description
-        // 2 bytes   - memo length
-        // x bytes   - memo
-
+        // 19 bytes  - "Proof of Space Plot" (utf-8) --19
+        // 32 bytes  - unique plot id --32
+        // 1 byte    - k --1
+        // 2 bytes   - format description length --2
+        // x bytes   - format description --4
+        // 2 bytes   - memo length -- 2
+        // x bytes   - memo --80
         SafeRead(disk_file, (uint8_t*)&header, sizeof(header));
         if (memcmp(header.magic, "Proof of Space Plot", sizeof(header.magic)) != 0)
             throw std::invalid_argument("Invalid plot header magic");
@@ -89,17 +92,30 @@ public:
         SafeRead(disk_file, size_buf, 2);
         this->memo_size = Util::TwoBytesToInt(size_buf);
         this->memo = new uint8_t[this->memo_size];
-        SafeRead(disk_file, this->memo, this->memo_size);
 
+        SafeRead(disk_file, this->memo, this->memo_size);
+        SafeSeek(disk_file, offsetof(struct plot_header, local_sk_len) + sizeof(header.local_sk_len));
+        SafeRead(disk_file, this->localMasterSK, kIdLen);
+//        cout << "this->memo_size:" << this->memo_size << endl;
+        //cout << "this->localMasterSK:" << Util::HexStr(this->localMasterSK,kIdLen) << endl;
+//        cout << "this->memo:" << Util::HexStr(this->memo,this->memo_size) << endl;
+        memcpy(this->poolPK,this->memo,48);
+        memcpy(this->farmerPK,&this->memo[48],48);
+//        cout << "this->poolPK:" << Util::HexStr(this->poolPK,48) << endl;
+//        cout << "this->farmerPK:" << Util::HexStr(this->farmerPK,48) << endl;
         this->table_begin_pointers = std::vector<uint64_t>(11, 0);
         this->C2 = std::vector<uint64_t>();
 
         uint8_t pointer_buf[8];
+        std::vector<uint8_t> uint8Vec;
+
         for (uint8_t i = 1; i < 11; i++) {
             SafeRead(disk_file, pointer_buf, 8);
+            this->tablePointers.insert(this->tablePointers.end(),&pointer_buf[0],&pointer_buf[8]);
             this->table_begin_pointers[i] = Util::EightBytesToInt(pointer_buf);
+            //cout<<this->table_begin_pointers[i]<<endl;
         }
-
+        //cout << "tablePointers:" << Util::HexStr(this->tablePointers.data(),this->tablePointers.size()) << endl;
         SafeSeek(disk_file, table_begin_pointers[9]);
 
         uint8_t c2_size = (Util::ByteAlign(k) / 8);
@@ -115,7 +131,10 @@ public:
             SafeRead(disk_file, c2_buf, c2_size);
             this->C2.push_back(Bits(c2_buf, c2_size, c2_size * 8).Slice(0, k).GetValue());
         }
-
+        disk_file.seekg(0, disk_file.end);
+        size_t srcSize = disk_file.tellg();
+        this->fileSize = srcSize;
+        //cout << "PlotSize:" << this->fileSize << endl;
         delete[] c2_buf;
     }
 
@@ -138,6 +157,11 @@ public:
     std::string GetFilename() const noexcept { return filename; }
 
     uint8_t GetSize() const noexcept { return k; }
+    void GetTableBegin(uint8_t* buffer) const noexcept { memcpy(buffer,this->tablePointers.data(),this->tablePointers.size()); }
+    void GetfarmerPK(uint8_t* buffer) const noexcept { memcpy(buffer,this->farmerPK,sizeof(this->farmerPK)); }
+    void GetlocalMasterSK(uint8_t* buffer) const noexcept { memcpy(buffer,this->localMasterSK,kIdLen); }
+    void GetpoolPK(uint8_t* buffer) const noexcept { memcpy(buffer,this->poolPK,sizeof(this->poolPK)); }
+    long GetPlotSize() const noexcept { return this->fileSize; }
 
     // Given a challenge, returns a quality string, which is sha256(challenge + 2 adjecent x
     // values), from the 64 value proof. Note that this is more efficient than fetching all 64 x
@@ -240,6 +264,11 @@ private:
     uint8_t* memo;
     uint8_t id[kIdLen]{};  // Unique plot id
     uint8_t k;
+    uint8_t poolPK[48];
+    uint8_t farmerPK[48];
+    long fileSize;
+    uint8_t localMasterSK[kIdLen];
+    std::vector<uint8_t> tablePointers;
     std::vector<uint64_t> table_begin_pointers;
     std::vector<uint64_t> C2;
 
@@ -271,7 +300,7 @@ private:
                       << (disk_file.rdstate() & std::ifstream::eofbit)
                       << std::endl;
             throw std::runtime_error("badbit or failbit after reading size " +
-                    std::to_string(size) + " at position " + std::to_string(pos));
+                                     std::to_string(size) + " at position " + std::to_string(pos));
         }
     }
 

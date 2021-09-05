@@ -164,7 +164,7 @@ add_executable(RunTests
 
 else()
 
-add_library(chiapos ${CMAKE_CURRENT_SOURCE_DIR}/go-bindings/chiapos.cpp src/chacha8.c ${BLAKE3_SRC})
+add_library(chiapos SHARED ${CMAKE_CURRENT_SOURCE_DIR}/go-bindings/chiapos.cpp src/chacha8.c ${BLAKE3_SRC})
 
 endif()
 

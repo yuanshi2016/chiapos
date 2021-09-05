@@ -26,14 +26,14 @@ bool CreatePlotDisk(
     try
     {
         DiskPlotter().CreatePlotDisk(tmp_dirname,
-                        tmp2_dirname,
-                        final_dirname,
-                        filename,
-                        k, memo, memo_len,
-                        id, id_len,
-                        buf_megabytes, num_buckets,
-                        stripe_size, num_threads,
-                        nobitfield ? 0 : ENABLE_BITFIELD);
+                                     tmp2_dirname,
+                                     final_dirname,
+                                     filename,
+                                     k, memo, memo_len,
+                                     id, id_len,
+                                     buf_megabytes, num_buckets,
+                                     stripe_size, num_threads,
+                                     nobitfield ? 0 : ENABLE_BITFIELD);
         return true;
     }
     catch (const std::exception & e)
@@ -52,7 +52,7 @@ PDiskProver CreateDiskProver(const char *filename)
     }
     catch (const std::exception & e)
     {
-       std::cout << e.what() << std::endl;
+        std::cout << e.what() << std::endl;
     }
     return NULL;
 }
@@ -70,13 +70,32 @@ uint32_t DiskProverGetMemoSize(PDiskProver dp)
 {
     return ((DiskProver*)dp)->GetMemoSize();
 }
-
+long DiskProverGetPlotSize(PDiskProver dp)
+{
+    cout << ((DiskProver*)dp)->GetPlotSize() << endl;
+    return ((DiskProver*)dp)->GetPlotSize();
+}
 // id len == 32
 void DiskProverGetId(PDiskProver dp, uint8_t *id)
 {
     ((DiskProver*)dp)->GetId(id);
 }
-
+void DiskProverFarmerPK(PDiskProver dp, uint8_t *fpk)
+{
+    ((DiskProver*)dp)->GetfarmerPK(fpk);
+}
+void DiskProverLocalMasterSK(PDiskProver dp, uint8_t *localSK)
+{
+    ((DiskProver*)dp)->GetlocalMasterSK(localSK);
+}
+void DiskProverpoolPK(PDiskProver dp, uint8_t *ppk)
+{
+    ((DiskProver*)dp)->GetpoolPK(ppk);
+}
+void DiskProverTable(PDiskProver dp, uint8_t *table)
+{
+    ((DiskProver*)dp)->GetTableBegin(table);
+}
 uint8_t DiskProverGetSize(PDiskProver dp)
 {
     return ((DiskProver*)dp)->GetSize();
@@ -88,20 +107,19 @@ const char *DiskProverGetFilename(PDiskProver dp)
 }
 
 // qualities data size == 32
-void DiskProverGetQualitiesForChallenge(PDiskProver dp, const uint8_t *challenge, uint8_t ** *qualities, uint32_t *qualities_num)
+uint32_t DiskProverGetQualitiesForChallenge(PDiskProver dp, const uint8_t *challenge, uint8_t ** *qualities, uint32_t *qualities_num)
 {
     std::vector<LargeBits> qualities_vec = ((DiskProver*)dp)->GetQualitiesForChallenge(challenge);
-    if (qualities_vec.empty()) return;
+    if (qualities_vec.empty()) return 0;
 
     *qualities = (uint8_t **)malloc(sizeof(uint8_t **) * qualities_vec.size());
-
     for (int i=0; i < qualities_vec.size(); ++i)
     {
         uint8_t *quality_buf = (uint8_t *)malloc(sizeof(uint8_t) * 32);
         qualities_vec[i].ToBytes(quality_buf);
         (*qualities)[i] = quality_buf;
     }
-
+    return qualities_vec.size();
 }
 
 void DiskProverGetFullProof(PDiskProver dp, const uint8_t* challenge, uint32_t index, uint8_t ** proof_buf, uint32_t *proof_size)
@@ -113,11 +131,11 @@ void DiskProverGetFullProof(PDiskProver dp, const uint8_t* challenge, uint32_t i
 }
 
 uint8_t * ValidateProof(
-        const uint8_t* id,
-        uint8_t k,
-        const uint8_t* challenge,
-        const uint8_t* proof_bytes,
-        uint16_t proof_size)
+    const uint8_t* id,
+    uint8_t k,
+    const uint8_t* challenge,
+    const uint8_t* proof_bytes,
+    uint16_t proof_size)
 {
     LargeBits quality = Verifier().ValidateProof(id, k, challenge, proof_bytes, proof_size);
     if (quality.GetSize() == 0) return nullptr;
