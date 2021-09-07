@@ -20,8 +20,8 @@
 #include <unistd.h>
 #endif
 
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 
 #include <algorithm>
 #include <fstream>
@@ -45,6 +45,7 @@
 #include "sort_manager.hpp"
 #include "threading.hpp"
 #include "util.hpp"
+#include "phases.hpp"
 #include "progress.hpp"
 
 struct THREADDATA {

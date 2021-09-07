@@ -1,6 +1,8 @@
 ProofOfSpace
 RunTests
 HellmanAttacks
+.idea
+cmake-build-debug
 *.dSYM
 **/*.o
 **/*.dat

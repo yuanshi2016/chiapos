@@ -1,7 +1,20 @@
 #pragma once
 #include <stdint.h>
 #include <stdbool.h>
-
+#if defined(_MSC_VER)
+    //  Microsoft
+    #define EXPORT __declspec(dllexport)
+    #define IMPORT __declspec(dllimport)
+#elif defined(__GNUC__)
+    //  GCC
+    #define EXPORT __attribute__((visibility("default")))
+    #define IMPORT
+#else
+    //  do nothing and hope for the best?
+    #define EXPORT extern
+    #define IMPORT extern
+    #pragma warning Unknown dynamic link import/export semantics.
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -104,6 +117,7 @@ __declspec(dllexport) uint8_t * ValidateProof(const uint8_t* id,uint8_t k,const 
 extern uint8_t * ValidateProof(const uint8_t* id,uint8_t k,const uint8_t* challenge,const uint8_t* proof_bytes,uint16_t proof_size);
 #endif
 
+EXPORT uint8_t * CreateHeader(const uint8_t* fpk, const uint8_t* ppk);
 
 #ifdef __cplusplus
 }
