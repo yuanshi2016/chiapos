@@ -117,7 +117,6 @@ __declspec(dllexport) uint8_t * ValidateProof(const uint8_t* id,uint8_t k,const 
 extern uint8_t * ValidateProof(const uint8_t* id,uint8_t k,const uint8_t* challenge,const uint8_t* proof_bytes,uint16_t proof_size);
 #endif
 
-EXPORT uint8_t * CreateHeader(const uint8_t* fpk, const uint8_t* ppk);
 
 #ifdef __cplusplus
 }

@@ -12,7 +12,6 @@ ENDIF()
 
 
 option(only_chiapos "Only Build chiapos" ON)
-add_subdirectory(lib/bls-signatures)
 
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
@@ -61,7 +60,6 @@ set(FSE_FILES
 )
 
 include_directories(
-  lib/bls-signatures/src
   ${INCLUDE_DIRECTORIES}
   ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include
   ${cxxopts_SOURCE_DIR}/include
@@ -70,8 +68,6 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/src
   ${CMAKE_CURRENT_SOURCE_DIR}/uint128_t
   ${CMAKE_CURRENT_SOURCE_DIR}/test
-  ${CMAKE_BINARY_DIR}/_deps/relic-src/include
-  ${CMAKE_BINARY_DIR}/_deps/relic-build/include
   )
 
 add_library(fse ${FSE_FILES})
@@ -183,14 +179,14 @@ target_compile_features(RunTests PUBLIC cxx_std_17)
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  target_link_libraries(chiapos PRIVATE  bls  fse Threads::Threads)
+  target_link_libraries(chiapos PRIVATE    fse Threads::Threads)
 if (NOT only_chiapos)
   target_link_libraries(ProofOfSpace fse Threads::Threads)
   target_link_libraries(RunTests fse Threads::Threads)
 endif()
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
-  target_link_libraries(chiapos PRIVATE bls  fse Threads::Threads)
+  target_link_libraries(chiapos PRIVATE   fse Threads::Threads)
   if (NOT only_chiapos)
   target_link_libraries(ProofOfSpace fse Threads::Threads)
   target_link_libraries(RunTests fse Threads::Threads)
@@ -202,13 +198,13 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
   target_link_libraries(RunTests fse Threads::Threads)
   endif()
 elseif (MSVC)
-  target_link_libraries(chiapos PRIVATE bls  fse Threads::Threads uint128)
+  target_link_libraries(chiapos PRIVATE   fse Threads::Threads uint128)
   if (NOT only_chiapos)
   target_link_libraries(ProofOfSpace fse Threads::Threads uint128)
   target_link_libraries(RunTests fse Threads::Threads uint128)
   endif()
 else()
-  target_link_libraries(chiapos PRIVATE bls  fse stdc++fs Threads::Threads)
+  target_link_libraries(chiapos PRIVATE   fse stdc++fs Threads::Threads)
   if (NOT only_chiapos)
   target_link_libraries(ProofOfSpace fse stdc++fs Threads::Threads)
   target_link_libraries(RunTests fse stdc++fs Threads::Threads)

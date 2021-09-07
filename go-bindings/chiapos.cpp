@@ -1,8 +1,6 @@
 extern "C" {
 #include "chiapos.h"
 }
-#include <sodium.h>
-#include <bls.hpp>
 #include <iostream>
 #include <vector>
 #include <phase1.hpp>
@@ -150,51 +148,4 @@ uint8_t * ValidateProof(
     uint8_t *quality_buf = (uint8_t *)malloc(32);
     quality.ToBytes(quality_buf);
     return quality_buf;
-}
-uint8_t *  CreateHeader(string fpk, string ppk){
-    vector<uint8_t> seed(32);
-    randombytes_buf(seed.data(), seed.size());
-    bls::AugSchemeMPL MPL;
-
-    std::vector<uint8_t> poolPubKey(48 * 2);
-    std::vector<uint8_t> farmerPubKey(48 * 2);
-    Util::HexToBytes(Util::Strip0x(ppk), poolPubKey.data());
-    Util::HexToBytes(Util::Strip0x(fpk), farmerPubKey.data());
-    bls::G1Element pool_key = bls::G1Element::FromByteVector(poolPubKey);
-    bls::G1Element farmer_key = bls::G1Element::FromByteVector(farmerPubKey);
-
-    const bls::PrivateKey master_sk = MPL.KeyGen(seed);
-    bls::PrivateKey local_sk = master_sk;
-    for(uint32_t i : {12381, 8444, 3, 0}) {
-        local_sk = MPL.DeriveChildSk(local_sk, i);
-    }
-    const bls::G1Element local_key = local_sk.GetG1Element();
-    const bls::G1Element plot_key = local_key + farmer_key;
-    input_t params;
-    {
-        //--- plot-id 基于pool_key追加plot_key 计算hash256
-        vector<uint8_t> bytes = pool_key.Serialize();
-        {
-            const auto plot_bytes = plot_key.Serialize();
-            bytes.insert(bytes.end(), plot_bytes.begin(), plot_bytes.end());
-        }
-        bls::Util::Hash256(params.id.data(), bytes.data(), bytes.size());
-    }
-    const std::string plot_name = "plot-k32-" + Util::get_date_string_ex("%Y-%m-%d-%H-%M") + "-" + bls::Util::HexStr(params.id.data(), params.id.size());
-
-    params.memo.insert(params.memo.end(), poolPubKey.begin(), poolPubKey.end());
-    params.memo.insert(params.memo.end(), farmerPubKey.begin(), farmerPubKey.end());
-    {
-        const auto bytes = master_sk.Serialize();
-        params.memo.insert(params.memo.end(), bytes.begin(), bytes.end());
-    }
-    params.plot_name = plot_name;
-    vector<uint8_t> header(188);
-    std::string Str{"50726F6F66206F6620537061636520506C6F74"};
-    std::string Str1{"20000476312E300080"};
-    seed.assign(Str.begin(), Str.end());
-    seed.assign(params.id.begin(), params.id.end());
-    seed.assign(Str1.begin(), Str1.end());
-    seed.assign(params.memo.begin(), params.memo.end());
-    return header.data();
 }
