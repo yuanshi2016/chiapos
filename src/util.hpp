@@ -30,21 +30,14 @@
 #include <string>
 #include <utility>
 #include <vector>
-using std::cout;
-using std::endl;
-using std::string;
-using std::vector;
+
 template <typename Int>
-constexpr inline Int cdiv(Int a, int b)
-{
-    return (a + b - 1) / b;
-}
+constexpr inline Int cdiv(Int a, int b) { return (a + b - 1) / b; }
 
 #ifdef _WIN32
 #define NOMINMAX
-#include <processthreadsapi.h>
 #include <windows.h>
-
+#include <processthreadsapi.h>
 #include "uint128_t.h"
 #else
 // __uint__128_t is only available in 64 bit architectures and on certain
@@ -111,8 +104,8 @@ public:
     {
         auto end = std::chrono::steady_clock::now();
         auto wall_clock_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                 end - this->wall_clock_time_start_)
-                                 .count();
+            end - this->wall_clock_time_start_)
+            .count();
 
 #if _WIN32
         FILETIME nowft_[6];
@@ -146,6 +139,7 @@ private:
 #else
     clock_t cpu_time_start_;
 #endif
+
 };
 
 namespace Util {
@@ -157,38 +151,7 @@ inline X Mod(X i, X n)
 }
 
 inline uint32_t ByteAlign(uint32_t num_bits) { return (num_bits + (8 - ((num_bits) % 8)) % 8); }
-inline void HexToBytes(const string &hex, uint8_t *result)
-{
-    for (uint32_t i = 0; i < hex.length(); i += 2) {
-        string byteString = hex.substr(i, 2);
-        uint8_t byte = (uint8_t)strtol(byteString.c_str(), NULL, 16);
-        result[i / 2] = byte;
-    }
-}
-inline string Strip0x(const string &hex)
-{
-    if (hex.size() > 1 && (hex.substr(0, 2) == "0x" || hex.substr(0, 2) == "0X")) {
-        return hex.substr(2);
-    }
-    return hex;
-}
-inline string get_date_string_ex(const char* format, bool UTC = false, int64_t time_secs = -1) {
-    ::time_t time_;
-    if(time_secs < 0) {
-        ::time(&time_);
-    } else {
-        time_ = time_secs;
-    }
-    ::tm* tmp;
-    if(UTC) {
-        tmp = ::gmtime(&time_);
-    } else {
-        tmp = ::localtime(&time_);
-    }
-    char buf[256];
-    ::strftime(buf, sizeof(buf), format, tmp);
-    return std::string(buf);
-}
+
 inline std::string HexStr(const uint8_t *data, size_t len)
 {
     std::stringstream s;
@@ -198,20 +161,13 @@ inline std::string HexStr(const uint8_t *data, size_t len)
     s << std::dec;
     return s.str();
 }
-inline std::vector<unsigned char> intToBytes(uint32_t paramInt, uint32_t numBytes)
-{
-    vector<unsigned char> arrayOfByte(numBytes, 0);
-    for (uint32_t i = 0; paramInt > 0; i++) {
-        arrayOfByte[numBytes - i - 1] = paramInt & 0xff;
-        paramInt >>= 8;
-    }
-    return arrayOfByte;
-}
+
 inline void IntToTwoBytes(uint8_t *result, const uint16_t input)
 {
     uint16_t r = bswap_16(input);
     memcpy(result, &r, sizeof(r));
 }
+
 
 // Used to encode deltas object size
 inline void IntToTwoBytesLE(uint8_t *result, const uint16_t input)
@@ -292,7 +248,10 @@ inline uint64_t SliceInt64FromBytes(
     return tmp;
 }
 
-inline uint64_t SliceInt64FromBytesFull(const uint8_t *bytes, uint32_t start_bit, uint32_t num_bits)
+inline uint64_t SliceInt64FromBytesFull(
+    const uint8_t *bytes,
+    uint32_t start_bit,
+    uint32_t num_bits)
 {
     uint32_t last_bit = start_bit + num_bits;
     uint64_t r = SliceInt64FromBytes(bytes, start_bit, num_bits);
@@ -350,7 +309,11 @@ inline uint64_t RoundSize(uint64_t size)
 /*
  * Like memcmp, but only compares starting at a certain bit.
  */
-inline int MemCmpBits(uint8_t *left_arr, uint8_t *right_arr, uint32_t len, uint32_t bits_begin)
+inline int MemCmpBits(
+    uint8_t *left_arr,
+    uint8_t *right_arr,
+    uint32_t len,
+    uint32_t bits_begin)
 {
     uint32_t start_byte = bits_begin / 8;
     uint8_t mask = ((1 << (8 - (bits_begin % 8))) - 1);
@@ -411,6 +374,6 @@ inline uint64_t PopCount(uint64_t n)
     return __builtin_popcountl(n);
 #endif /* defined(_WIN32) ... defined(__x86_64__) */
 }
-}  // namespace Util
+}
 
 #endif  // SRC_CPP_UTIL_HPP_

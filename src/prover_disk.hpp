@@ -174,7 +174,6 @@ public:
 
         {
             std::ifstream disk_file(filename, std::ios::in | std::ios::binary);
-
             if (!disk_file.is_open()) {
                 throw std::invalid_argument("Invalid file " + filename);
             }
